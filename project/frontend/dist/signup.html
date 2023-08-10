@@ -9,7 +9,7 @@
 
 <body>
     <h1>회원가입</h1>
-    <form action="/register" method="post">
+    <form action="/api/auth/register" method="post" enctype="application/x-www-form-urlencoded">
         <label for="name">이름:</label>
         <input type="text" id="name" name="name" required /><br />
 
@@ -24,8 +24,8 @@
 
         <div id="passwordAlert" style="color: red;"></div>
 
-        <label for="cooperationType">협업유형:</label>
-        <input type="text" id="cooperationType" name="cooperationType" minlength="3" maxlength="3" required /><br />
+        <label for="type">협업유형:</label>
+        <input type="text" id="type" name="type" minlength="3" maxlength="3" required /><br />
 
         <label for="phone">휴대전화:</label>
         <input type="tel" id="phone" name="phone" pattern="[0-9]{3}-[0-9]{4}-[0-9]{4}" placeholder="010-1234-5678"
@@ -35,8 +35,8 @@
         <!-- 기술 스택 체크박스가 들어갈 위치 -->
         <div id="techStackCheckboxes"></div>
 
-        <label for="attendance">온/오프라인 여부:</label>
-        <select id="attendance" name="attendance">
+        <label for="onOffline">온/오프라인 여부:</label>
+        <select id="onOffline" name="onOffline">
             <option value="online">온라인</option>
             <option value="offline">오프라인</option>
             <option value="">상관없음</option>
@@ -100,7 +100,7 @@
                 techStackData.techStack.forEach((tech) => {
                     const checkbox = document.createElement("input");
                     checkbox.type = "checkbox";
-                    checkbox.name = "skills";
+                    checkbox.name = "techs";
                     checkbox.value = tech;
                     checkbox.id = tech;
 
@@ -115,12 +115,12 @@
 
                 const maxTechStack = 5; // 최대 선택 가능한 기술스택 수
 
-                const checkboxes = document.querySelectorAll('input[name="skills"]');
+                const checkboxes = document.querySelectorAll('input[name="techs"]');
                 let selectedCount = 0;
 
                 checkboxes.forEach(checkbox => {
                     checkbox.addEventListener('change', () => {
-                        selectedCount = document.querySelectorAll('input[name="skills"]:checked').length;
+                        selectedCount = document.querySelectorAll('input[name="techs"]:checked').length;
 
                         if (selectedCount > maxTechStack) {
                             alert(`최대 ${maxTechStack}개까지 선택할 수 있습니다.`);
