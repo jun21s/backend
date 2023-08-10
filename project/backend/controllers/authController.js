@@ -106,3 +106,22 @@ exports.login = (req, res) => {
         });
     });
 };
+
+exports.logout = (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            console.error('Error destroying session:', err);
+            res.status(500).json({ message: 'Failed to log out' });
+            return;
+        }
+        res.redirect('/login');
+    });
+};
+
+exports.checkLogin = (req, res) => {
+    if (req.session.email) {
+        res.json({ loggedIn: true });
+    } else {
+        res.json({ loggedIn: false });
+    }
+};

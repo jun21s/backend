@@ -1,21 +1,28 @@
 const express = require('express');
+const app = express();
 const session = require('express-session');
 const cors = require('cors'); // cors 패키지 불러오기
 const path = require('path');
 require('dotenv').config();
-const app = express();
-const db = require('./config/database');
+const cookieparser = require('cookie-parser');
 const authRoutes = require('./routes/authRoutes');
+const db = require('./config/database');
+
 
 // CORS 설정 적용
 app.use(cors());
 
 // 미들웨어 설정
-app.use(express.urlencoded());
+app.use(express.urlencoded( {extended: false}));
+app.use(cookieparser());
 app.use(session({
-    secret: 'your-secret-key', // 세션 데이터를 암호화하기 위한 시크릿 키
+    secret: process.env.SECRET_KEY, // 세션 데이터를 암호화하기 위한 시크릿 키
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: false
+    }
 }));
 app.use('/api/auth', authRoutes);
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
@@ -41,6 +48,7 @@ app.get('/signup', (req, res) => {
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/login.html'));
 })
+
 // 서버 실행
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

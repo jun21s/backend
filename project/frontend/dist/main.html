@@ -4,13 +4,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MainPage</title>
+    <title>Document</title>
 </head>
 
 <body>
     <h1>This is Main Page!</h1>
-    <a href="/signup">회원가입</a> <!-- 회원가입 페이지로 넘어가는 링크 수정 -->
-    <a href="/login">로그인</a>
+    <a href="/signup">회원가입</a>
+    <button id="loginButton">로그인</button>
+    <script>
+        window.onload = function () {
+            const loginButton = document.getElementById('loginButton');
+
+            // 버튼 텍스트 변경 함수
+            function setButtonState(loggedIn) {
+                if (loggedIn) {
+                    loginButton.innerText = '로그아웃';
+                    loginButton.addEventListener('click', () => {
+                        // 로그아웃 처리
+                        fetch('/api/auth/logout', { method: 'POST' })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    window.location.reload(); // 페이지 새로고침
+                                } else {
+                                    console.error('Failed to log out');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error logging out:', error);
+                            });
+                    });
+                } else {
+                    loginButton.innerText = '로그인';
+                    loginButton.addEventListener('click', () => {
+                        // 로그인 페이지로 이동
+                        window.location.href = '/login'; // 로그인 페이지로 이동
+                    });
+                }
+            }
+
+            // 로그인 상태 확인 엔드포인트 호출
+            fetch('/api/auth/checkLogin')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    setButtonState(data.loggedIn);
+                })
+                .catch(error => {
+                    console.error('Error checking login status:', error);
+                });
+        }
+    </script>
 </body>
 
 </html>
