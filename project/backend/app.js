@@ -13,7 +13,7 @@ const db = require('./config/database');
 app.use(cors());
 
 // 미들웨어 설정
-app.use(express.urlencoded( {extended: false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieparser());
 app.use(session({
     secret: process.env.SECRET_KEY, // 세션 데이터를 암호화하기 위한 시크릿 키
@@ -24,6 +24,12 @@ app.use(session({
         secure: false
     }
 }));
+app.use((req, res, next) => {
+    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.header('Pragma', 'no-cache');
+    res.header('Expires', 0);
+    next();
+});
 app.use('/api/auth', authRoutes);
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
@@ -47,6 +53,14 @@ app.get('/signup', (req, res) => {
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/login.html'));
+})
+
+app.get('/find/Id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/findId.html'));
+})
+
+app.get('/find/Password', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/findPassword.html'));
 })
 
 // 서버 실행

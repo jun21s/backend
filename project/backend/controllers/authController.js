@@ -69,7 +69,6 @@ exports.register = (req, res) => {
 };
 
 exports.login = (req, res) => {
-    console.log(req.body);
     const { email, password } = req.body;
 
     // Users 테이블에서 해당 이메일을 가진 사용자 정보 가져오기
@@ -112,11 +111,13 @@ exports.logout = (req, res) => {
         if (err) {
             console.error('Error destroying session:', err);
             res.status(500).json({ message: 'Failed to log out' });
-            return;
+        } else {
+            res.clearCookie('connect.sid'); // 세션 쿠키 삭제
+            res.status(200).json({ message: 'Logged out successfully' });
         }
-        res.redirect('/');
     });
 };
+
 
 exports.checkLogin = (req, res) => {
     if (req.session.email) {
@@ -125,3 +126,13 @@ exports.checkLogin = (req, res) => {
         res.json({ loggedIn: false });
     }
 };
+
+exports.findId = (req, res) => {
+    const { email, phone } = req.body;
+    db.query
+}
+
+exports.findPassword = (req, res) => {
+    const { email, password } = req.body;
+    
+}

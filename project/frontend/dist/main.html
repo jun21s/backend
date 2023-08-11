@@ -23,8 +23,7 @@
                         // 로그아웃 처리
                         fetch('/api/auth/logout', { method: 'POST' })
                             .then(response => {
-                                // 페이지 새로고침
-                                window.location.reload();
+                                window.location.href = '/';
                             })
                             .catch(error => {
                                 console.error('Error logging out:', error);
