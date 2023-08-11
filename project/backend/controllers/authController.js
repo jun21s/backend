@@ -114,7 +114,7 @@ exports.logout = (req, res) => {
             res.status(500).json({ message: 'Failed to log out' });
             return;
         }
-        res.redirect('/login');
+        res.redirect('/');
     });
 };
 
