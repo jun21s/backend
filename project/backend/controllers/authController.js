@@ -148,7 +148,12 @@ exports.findId = (req, res) => {
     });
 };
 
+
+
+
 exports.findPassword = (req, res) => {
     const { email, password } = req.body;
     
 }
+
+

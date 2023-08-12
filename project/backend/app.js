@@ -5,8 +5,13 @@ const cors = require('cors'); // cors 패키지 불러오기
 const path = require('path');
 require('dotenv').config();
 const cookieparser = require('cookie-parser');
+
 const authRoutes = require('./routes/authRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+
 const db = require('./config/database');
+
+
 
 
 // CORS 설정 적용
@@ -31,6 +36,8 @@ app.use((req, res, next) => {
     next();
 });
 app.use('/api/auth', authRoutes);
+app.use('/api/project', projectRoutes);
+
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 
@@ -62,6 +69,12 @@ app.get('/find/Id', (req, res) => {
 app.get('/find/Password', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/findPassword.html'));
 })
+
+// Pagination 설정
+app.get('/pagination', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/board.html'));
+})
+
 
 // 서버 실행
 const PORT = process.env.PORT || 3000;
