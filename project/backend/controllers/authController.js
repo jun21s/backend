@@ -128,9 +128,25 @@ exports.checkLogin = (req, res) => {
 };
 
 exports.findId = (req, res) => {
-    const { email, phone } = req.body;
-    db.query
-}
+    const { name, phone } = req.body;
+    console.log(name, phone);
+    const query = 'SELECT Email FROM Users WHERE Name = ? AND Phone = ?';
+    db.query(query, [name, phone], (err, results) => {
+        console.log(results);
+        if (err) {
+            console.error('Error executing query:', err);
+            res.json({ error: 'An error occurred while fetching data' });
+            return;
+        }
+
+        if (results.length === 0) {
+            res.json({ email: null });
+        } else {
+            const email = results[0].Email;
+            res.json({ email });
+        }
+    });
+};
 
 exports.findPassword = (req, res) => {
     const { email, password } = req.body;
