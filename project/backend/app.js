@@ -6,6 +6,7 @@ const path = require('path');
 require('dotenv').config();
 const cookieparser = require('cookie-parser');
 const authRoutes = require('./routes/authRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 const db = require('./config/database');
 
 
@@ -55,12 +56,20 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/login.html'));
 })
 
-app.get('/find/Id', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/findId.html'));
+app.get('/search/Id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/searchId.html'));
 })
 
-app.get('/find/Password', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/findPassword.html'));
+app.get('/search/Password', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/searchPassword.html'));
+})
+
+app.get('/updatePassword/:token', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/updatePassword.html'));
+});
+
+app.get('/pagination', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/board.html'));
 })
 
 // 서버 실행
