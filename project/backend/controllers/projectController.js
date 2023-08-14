@@ -28,6 +28,7 @@ exports.postsboard = (req, res) => {
     function getPostsForPage(page, itemsPerPage, callback) {
         const offset = (page - 1) * itemsPerPage;
         // 게시물을 id가 큰 순서대로=최근에 만든 순서대로 출력
+        // offset 형식이 밑에 페이지 번호가 나오는 형식
         const query = `SELECT * FROM posts ORDER BY id DESC LIMIT ${itemsPerPage} OFFSET ${offset}`;
         db.query(query, (err, results) => {
             if (err) {
