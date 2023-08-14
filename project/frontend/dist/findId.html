@@ -7,12 +7,53 @@
 </head>
 <body>
     <h1>Find Your ID</h1>
-    <form action="/api/auth/findId" method="POST" enctype="application/x-www-form-urlencoded">
+    <form action="#" method="POST" enctype="application/x-www-form-urlencoded" id="findIdForm">
         <div>
-            <label for="email">이메일</label>
-            <input type="email" id="email" name="email" required>
+            <label for="name">이름</label>
+            <input type="text" id="name" name="name" required>
         </div>
-        <button type="submit" id="findId">아이디 찾기</button>
+        <div>
+            <label for="phone">전화번호</label>
+            <input type="text" id="phone" name="phoneNumber" required>
+        </div>
+        <button type="button" id="findIdButton">아이디 찾기</button>
     </form>
+    <p id="result"></p>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const findIdForm = document.getElementById('findIdForm');
+    const findIdButton = document.getElementById('findIdButton');
+    const resultElement = document.getElementById('result');
+
+    findIdButton.addEventListener('click', function () {
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+
+        // 서버로 요청 보내기
+        fetch('/api/auth/findId', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `name=${name}&phone=${phone}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.email) {
+                resultElement.textContent = `찾은 이메일: ${data.email}`;
+            } else {
+                resultElement.textContent = '해당 이름과 전화번호로 아이디를 찾을 수 없습니다.';
+            }
+        })
+        .catch(error => {
+            console.error('에러:', error);
+            resultElement.textContent = '데이터를 가져오는 중에 오류가 발생했습니다.';
+        });
+    });
+});
+
+
+    </script>
 </body>
 </html>
