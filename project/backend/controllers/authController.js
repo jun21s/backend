@@ -4,6 +4,7 @@ const session = require('express-session');
 const jwt = require('jsonwebtoken');
 const authService = require('../services/authService');
 
+// 테크의 정보를 주기
 exports.getTechStack = (req, res) => {
     db.query('SELECT tech FROM Tech', (err, techStackData) => {
         if (err) {
@@ -16,6 +17,7 @@ exports.getTechStack = (req, res) => {
     });
 };
 
+// 회원가입
 exports.register = (req, res) => {
     const { name, email, password, type, phone, techs, onOffline } = req.body;
     switch (onOffline) {
@@ -29,7 +31,7 @@ exports.register = (req, res) => {
             onOffValue = null;
             break;
     }
-    // 비밀번호 암호화
+    // bcrypt를 이용한 해싱
     bcrypt.hash(password, 10, (err, hashedPassword) => {
         if (err) {
             console.error('Error hashing password:', err);
@@ -37,7 +39,7 @@ exports.register = (req, res) => {
             return;
         }
 
-        // Users 테이블에 회원 정보 추가
+        // Users 테이블에 유저 정보 추가
         db.query('INSERT INTO Users (Name, Email, Password, CooperationType, Phone, OnOff) VALUES (?, ?, ?, ?, ?, ?);', [name, email, hashedPassword, type, phone, onOffValue], (err, result) => {
             if (err) {
                 console.error('Error adding user:', err);
@@ -72,7 +74,7 @@ exports.register = (req, res) => {
 exports.login = (req, res) => {
     const { email, password } = req.body;
 
-    // Users 테이블에서 해당 이메일을 가진 사용자 정보 가져오기
+    // Users 테이블에서 해당 이메일을 가진 유저 정보 가져오기
 
     db.query('SELECT Email, Password FROM Users WHERE Email = ?;', [email], (err, userData) => {
         if (err) {
@@ -88,7 +90,7 @@ exports.login = (req, res) => {
 
         const hashedPassword = userData[0].Password;
 
-        // 입력된 비밀번호와 저장된 해시된 비밀번호 비교
+        // 입력된 비밀번호와 해싱된 비밀번호 비교
         bcrypt.compare(password, hashedPassword, (err, result) => {
             if (err) {
                 console.error('Error comparing passwords:', err);
@@ -107,6 +109,7 @@ exports.login = (req, res) => {
     });
 };
 
+// 로그아웃
 exports.logout = (req, res) => {
     req.session.destroy(err => {
         if (err) {
@@ -119,7 +122,7 @@ exports.logout = (req, res) => {
     });
 };
 
-
+// 로그인 확인
 exports.checkLogin = (req, res) => {
     if (req.session.email) {
         res.json({ loggedIn: true });
@@ -128,6 +131,7 @@ exports.checkLogin = (req, res) => {
     }
 };
 
+// 아이디 찾기
 exports.searchId = (req, res) => {
     const { name, phone } = req.body;
     console.log(req);
@@ -161,8 +165,7 @@ exports.searchPassword = (req, res) => {
             res.json({ email: null });
         } else if (results.length === 1) {
             const user = results[0];
-            const token = jwt.sign({ email: user.Email }, process.env.SECRET_KEY, { expiresIn: '3m' });
-
+            const token = jwt.sign({ email: user.Email }, process.env.SECRET_KEY, { algorithm: "HS256", expiresIn: '3m' });
             // Auth 테이블에 토큰 정보 저장
             const expiration = new Date(Date.now() + 3 * 60 * 1000); // 3분 후
             const authQuery = 'INSERT INTO Auth (token, expiration) VALUES (?, ?)';
@@ -174,7 +177,7 @@ exports.searchPassword = (req, res) => {
                 }
 
                 // 이메일 전송 및 응답 처리
-                const resetLink = `localhost:3000/updatePassword/${token}`;
+                const resetLink = `localhost:3000/verifyToken/${token}`;
                 const emailSubject = 'Password Reset';
                 const emailHtml = `Click the following link to reset your password: <a href="${resetLink}">${resetLink}</a>`;
                 authService.sendEmail(user.Email, emailSubject, emailHtml);
@@ -186,47 +189,82 @@ exports.searchPassword = (req, res) => {
     });
 };
 
-exports.updatePassword = (req, res) => {
-    const { token } = req.params;
-
-    // 토큰 검증 로직이 필요합니다.
-    const updateQuery = 'UPDATE Users SET Password = ? WHERE Email = ?';
-
+exports.verifyToken = (req, res) => {
     try {
-        const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
+        const { token } = req.params;
 
-        // 토큰 검증이 성공하면 비밀번호 업데이트를 진행합니다.
-        const { email } = decodedToken;
-        const { password } = req.body;
-
-        bcrypt.hash(password, 10, (err, hashedPassword) => {
+        // 토큰 검증 로직
+        const tokenQuery = 'SELECT token, expiration FROM Auth WHERE token = ?';
+        db.query(tokenQuery, [token], (err, [tokenResults]) => {
             if (err) {
-                console.error('Error hashing password:', err);
-                res.status(500).json({ message: 'Failed to update password' });
-                return;
+                console.error('Error verifying token:', err);
+                return res.status(500).json({ message: '토큰 검증 중 에러가 발생했습니다.' });
             }
 
-            // Update the password in the Users table
-            db.query(updateQuery, [hashedPassword, email], (updateErr, updateResult) => {
+            if (!tokenResults) {
+                return res.status(400).json({ message: '유효하지 않은 토큰입니다.' });
+            }
+
+            const tokenData = tokenResults;
+            const now = new Date();
+            if (now > tokenData.expiration) {
+                return res.status(400).json({ message: '토큰이 만료되었습니다.' });
+            }
+
+            // 토큰 디코딩하여 이메일 정보 추출
+            const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
+            const userEmail = decodedToken.email;
+
+            return res.status(200).json({ message: '유효한 토큰입니다.', email: userEmail });
+        });
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        return res.status(500).json({ message: '토큰 검증 중 에러가 발생했습니다.' });
+    }
+};
+
+
+exports.updatePassword = (req, res) => {
+    try {
+        const { token, password } = req.body;
+
+        // 토큰 디코딩하여 이메일 정보 추출
+        const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
+        const userEmail = decodedToken.email;
+
+        // 비밀번호 해싱
+        bcrypt.hash(password, 10, (hashErr, hashedPassword) => {
+            if (hashErr) {
+                console.error('Error hashing password:', hashErr);
+                return res.status(500).json({ message: '비밀번호 업데이트 중 에러가 발생했습니다.' });
+            }
+
+            // 비밀번호 업데이트 쿼리 및 실행
+            const updateQuery = 'UPDATE Users SET Password = ? WHERE Email = ?';
+            db.query(updateQuery, [hashedPassword, userEmail], (updateErr, updateResult) => {
                 if (updateErr) {
                     console.error('Error updating password:', updateErr);
-                    res.status(500).json({ message: 'Failed to update password' });
-                    return;
+                    return res.status(500).json({ message: '비밀번호 업데이트 중 에러가 발생했습니다.' });
+                }
+
+                if (updateResult.affectedRows === 0) {
+                    return res.status(400).json({ message: '비밀번호 업데이트 실패' });
                 }
 
                 // 비밀번호 업데이트 성공 시 Auth 테이블에서 해당 토큰 삭제
                 const deleteAuthQuery = 'DELETE FROM Auth WHERE token = ?';
-                db.query(deleteAuthQuery, [token], (deleteErr, deleteResult) => {
+                db.query(deleteAuthQuery, [token], (deleteErr) => {
                     if (deleteErr) {
-                        console.error('Error deleting token from Auth table:', deleteErr);
+                        console.error('Error deleting token:', deleteErr);
+                        return res.status(500).json({ message: '비밀번호 업데이트 중 에러가 발생했습니다.' });
                     }
 
-                    res.redirect('/login'); // Redirect to login page after password update
+                    return res.redirect('/login');
                 });
             });
         });
     } catch (error) {
-        // 토큰이 유효하지 않을 경우에 대한 처리를 여기에 작성합니다.
-        res.status(400).send('Invalid token');
+        console.error('Error updating password:', error);
+        return res.status(500).json({ message: '비밀번호 업데이트 중 에러가 발생했습니다.' });
     }
 };
