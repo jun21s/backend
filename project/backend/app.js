@@ -29,6 +29,7 @@ app.use(cors());
 
 // 미들웨어 설정
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(cookieparser());
 app.use(session({
     secret: process.env.SECRET_KEY, // 세션 데이터를 암호화하기 위한 시크릿 키
@@ -46,6 +47,7 @@ app.use((req, res, next) => {
     next();
 });
 app.use('/api/auth', authRoutes);
+app.use('/api/project', projectRoutes);
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 
@@ -91,6 +93,11 @@ app.get('/updatePassword/:token', (req, res) => {
 // 게시판
 app.get('/pagination', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/board.html'));
+})
+
+// 게시물 작성
+app.get('/createProject', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/create_projects.html'));
 })
 
 // 서버 실행
