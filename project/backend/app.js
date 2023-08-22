@@ -8,8 +8,25 @@ const cookieparser = require('cookie-parser');
 
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
+<<<<<<< HEAD
 
+=======
+>>>>>>> d1ba96076da5b6faeda49ceb94a67334a0df3202
 const db = require('./config/database');
+const cron = require('node-cron');
+
+// 매일 자정에 실행되도록 스케줄을 설정합니다.
+cron.schedule('0 0 * * *', async () => {
+    try {
+        const now = new Date();
+        const deleteQuery = 'DELETE FROM Auth WHERE expiration <= ?';
+        const result = await db.query(deleteQuery, [now]);
+
+        console.log(`${result.affectedRows} expired tokens deleted.`);
+    } catch (error) {
+        console.error('Error deleting expired tokens:', error);
+    }
+});
 
 
 
@@ -41,33 +58,48 @@ app.use('/api/project', projectRoutes);
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 
-
-// 메인 페이지로 이동
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/main.html'));
     if (req.session.email) {
-        // 세션에 사용자 이메일 정보가 있으면 로그인된 상태라고 간주
         console.log('Welcome to the main page (Logged in)');
     } else {
         console.log('Welcome to the main page (Not logged in)');
     }
 });
 
-// 회원가입 페이지로 이동
+// 회원가입
 app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/signup.html'));
 });
 
+// 로그인
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/login.html'));
 })
 
-app.get('/find/Id', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/findId.html'));
+// 아이디 찾기
+app.get('/search/Id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/searchId.html'));
 })
 
-app.get('/find/Password', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/findPassword.html'));
+// 패스워드 찾기
+app.get('/search/Password', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/searchPassword.html'));
+})
+
+// 토큰 검증
+app.get('/verifyToken/:token', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/verifyToken.html'));
+})
+
+// 패스워드 변경
+app.get('/updatePassword/:token', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/updatePassword.html'));
+});
+
+// 게시판
+app.get('/pagination', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/board.html'));
 })
 
 // Pagination 설정
