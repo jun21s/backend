@@ -5,13 +5,8 @@ const cors = require('cors'); // cors 패키지 불러오기
 const path = require('path');
 require('dotenv').config();
 const cookieparser = require('cookie-parser');
-
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
-<<<<<<< HEAD
-
-=======
->>>>>>> d1ba96076da5b6faeda49ceb94a67334a0df3202
 const db = require('./config/database');
 const cron = require('node-cron');
 
@@ -27,8 +22,6 @@ cron.schedule('0 0 * * *', async () => {
         console.error('Error deleting expired tokens:', error);
     }
 });
-
-
 
 
 // CORS 설정 적용
@@ -53,8 +46,6 @@ app.use((req, res, next) => {
     next();
 });
 app.use('/api/auth', authRoutes);
-app.use('/api/project', projectRoutes);
-
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 
@@ -101,12 +92,6 @@ app.get('/updatePassword/:token', (req, res) => {
 app.get('/pagination', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/board.html'));
 })
-
-// Pagination 설정
-app.get('/pagination', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/board.html'));
-})
-
 
 // 서버 실행
 const PORT = process.env.PORT || 3000;

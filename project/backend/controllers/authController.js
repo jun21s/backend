@@ -152,17 +152,6 @@ exports.searchId = (req, res) => {
     });
 };
 
-<<<<<<< HEAD
-
-
-
-exports.findPassword = (req, res) => {
-    const { email, password } = req.body;
-    
-}
-
-
-=======
 exports.searchPassword = (req, res) => {
     const { email, phone } = req.body;
     const query = 'SELECT Email FROM Users WHERE Email = ? AND Phone = ?';
@@ -279,4 +268,3 @@ exports.updatePassword = (req, res) => {
         return res.status(500).json({ message: '비밀번호 업데이트 중 에러가 발생했습니다.' });
     }
 };
->>>>>>> d1ba96076da5b6faeda49ceb94a67334a0df3202

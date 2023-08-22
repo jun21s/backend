@@ -64,5 +64,22 @@ exports.postsboard = (req, res) => {
         };
         res.json({ totalPages, posts });
     });
+<<<<<<< HEAD
 });
 };
+=======
+};
+
+exports.showfield = (req, res) => {
+    db.query('select * from fields order by fieldId;', (err, fields) => {
+        if (err) {
+            console.error('Error fetching tech stack:', err);
+            res.status(500).json({ message: 'Failed to fetch tech stack' });
+        } else {
+            console.log(field);
+            const field = fields.map(item => item.tech);
+            res.status(200).json({ field });
+        }
+    });
+}
+>>>>>>> fdad058a64def55144cc11961187c51f1250fa5a
