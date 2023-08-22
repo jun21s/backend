@@ -15,9 +15,17 @@
 
         <label for="fieldId">분야 ID:</label>
         <input type="number" id="fieldId" name="fieldId" required /><br />
+        <!-- 여기도 기술 스텍처럼 체크박스로 하는게 좋을듯 -->
+
 
         <label for="area">지역:</label>
-        <input type="text" id="area" name="area" required /><br />
+        <select id="area" name="area">
+            <option value="seoul">서울</option>
+            <option value="busan">부산</option>
+            <option value="jeju">제주도</option>
+        </select><br />
+        <!-- 아직은 모든 지역들 다 안넣었음 -->
+
 
         <label for="description">설명:</label>
         <textarea id="description" name="description"></textarea><br />
@@ -37,6 +45,7 @@
 
         <label for="leader">프로젝트 리더 이메일:</label>
         <input type="email" id="leader" name="leader" /><br />
+        <!-- 지금은 입력 창이지만 등록하는 사람의 id=email을 들고와서 바로 하는것도 좋을듯 -->
 
         <button type="submit">등록하기</button>
         <button type="button">취소하기</button>
