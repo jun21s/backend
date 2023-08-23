@@ -54,14 +54,151 @@ exports.postsboard = (req, res) => {
 };
 
 exports.showfield = (req, res) => {
-    db.query('select * from fields order by fieldId;', (err, fields) => {
+    db.query('SELECT field FROM fields ORDER BY fieldId;', (err, fields) => {
         if (err) {
-            console.error('Error fetching tech stack:', err);
-            res.status(500).json({ message: 'Failed to fetch tech stack' });
+            console.error('Error fetching fields:', err);
+            res.status(500).json({ message: 'Failed to fetch fields' });
         } else {
-            console.log(field);
-            const field = fields.map(item => item.tech);
-            res.status(200).json({ field });
+            const fieldValues = fields.map(item => item.field); // 수정: item.fieldName을 item.field로 변경
+            res.status(200).json({ field: fieldValues }); // 수정: fieldNames 대신 field로 변경
         }
+    });
+}
+
+exports.showMajorFields = (req, res) => {
+    db.query('SELECT MajorFieldId, MajorField FROM MajorField ORDER BY MajorFieldId;', (err, majorFields) => {
+        if (err) {
+            console.error('Error fetching major fields:', err);
+            res.status(500).json({ message: 'Failed to fetch major fields' });
+        } else {
+            const majorFieldValues = majorFields.map(item => ({
+                majorFieldId: item.MajorFieldId,
+                majorField: item.MajorField
+            }));
+            res.status(200).json(majorFieldValues);
+        }
+    });
+};
+
+exports.showSubFields = (req, res) => {
+    const majorFieldId = req.params.majorFieldId;
+
+    db.query('SELECT SubFieldId, SubField FROM SubField WHERE MajorFieldId = ? ORDER BY SubFieldId;', [majorFieldId], (err, subFields) => {
+        if (err) {
+            console.error('Error fetching sub fields:', err);
+            res.status(500).json({ message: 'Failed to fetch sub fields' });
+        } else {
+            const subFieldValues = subFields.map(item => ({
+                subFieldId: item.SubFieldId,
+                subField: item.SubField
+            }));
+            res.status(200).json(subFieldValues);
+        }
+    });
+};
+
+
+exports.createProjects = async (req, res) => {
+    console.log(req.body);
+    const projectName = req.body.projectName;
+    const selectedField = req.body.selectedField;
+    const selectedMajorField = req.body.majorField;
+    const selectedSubField = req.body.subField;
+    const selectedArea = req.body.selectedArea;
+    const description = req.body.description;
+    const startDate = req.body.startDate;
+    const endDate = req.body.endDate;
+    const leaderEmail = req.body.leaderEmail;
+    const numOfRole = req.body.numOfRole;
+    const projectData = req.body.projectData;
+
+    try {
+        const fieldId = await getFieldId(selectedField);
+        const projectId = await insertProject(projectName, fieldId, selectedArea, description, startDate, endDate, leaderEmail);
+        
+        for (const data of projectData) {
+            const { majorField, subField, numOfRole } = data;
+            const majorFieldValue = majorField.split(': ')[1]; // Extract the value after ": "
+            const subFieldValue = subField.split(': ')[1];
+            const numOfRoleValue = numOfRole.split(': ')[1];
+            const majorFieldId = await getMajorFieldId(majorFieldValue);
+            const subFieldId = await getSubFieldId(subFieldValue);
+
+            await insertRecruitment(majorFieldId, subFieldId, numOfRoleValue, projectId);
+        }
+
+
+
+        res.status(200).json({ message: '프로젝트 및 모집 현황이 성공적으로 등록되었습니다.' });
+    } catch (error) {
+        console.error('Error creating project and recruitment:', error);
+        res.status(500).json({ message: 'Failed to create project and recruitment' });
+    }
+};
+
+
+async function getFieldId(selectedField) {
+    return new Promise((resolve, reject) => {
+        db.query('SELECT FieldId FROM Fields WHERE Field = ?', [selectedField], (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                console.log(result);
+                resolve(result[0].FieldId);
+            }
+        });
+    });
+}
+
+async function getMajorFieldId(majorField) {
+    return new Promise((resolve, reject) => {
+        db.query('SELECT MajorFieldId FROM MajorField WHERE MajorField = ?', [majorField], (err, result) => {
+            console.log(result);
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result[0].MajorFieldId);
+            }
+        });
+    });
+}
+
+async function getSubFieldId(subField) {
+    return new Promise((resolve, reject) => {
+        db.query('SELECT SubFieldId FROM SubField WHERE SubField = ?', [subField], (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result[0].SubFieldId);
+            }
+        });
+    });
+}
+
+async function insertProject(projectName, field, area, description, startDate, endDate, leaderEmail) {
+    return new Promise((resolve, reject) => {
+        const insertProjectQuery = 'INSERT INTO Projects (ProjectName, FieldId, Area, Description, StartDate, EndDate, Leader) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        const projectValues = [projectName, field, area, description, startDate, endDate, leaderEmail];
+        db.query(insertProjectQuery, projectValues, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result.insertId);
+            }
+        });
+    });
+}
+
+async function insertRecruitment(majorFieldId, subFieldId, numOfRole, projectId) {
+    return new Promise((resolve, reject) => {
+        const insertRecruitmentQuery = 'INSERT INTO Recruitment (MajorFieldId, SubFieldId, NumOfRole, ProjectId) VALUES (?, ?, ?, ?)';
+        const recruitmentValues = [majorFieldId, subFieldId, numOfRole, projectId];
+        db.query(insertRecruitmentQuery, recruitmentValues, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
     });
 }
