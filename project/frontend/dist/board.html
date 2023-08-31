@@ -29,10 +29,15 @@
                 .then(data => {
                     // Display posts
                     postList.innerHTML = '';
-                    data.posts.forEach(post => {
-                        const postElement = document.createElement('div');
-                        postElement.textContent = post.title; // Assuming you have a title field in your posts
-                        postList.appendChild(postElement);
+                    data.projects.forEach(project => {
+                        const projectElement = document.createElement('div');
+                        projectElement.innerHTML = `
+                        <h2>${project.ProjectName}</h2>
+                        <p>지역: ${project.Area}</p>
+                        <p>설명: ${project.Description}</p>
+                        <!-- 추가적인 프로젝트 필드들을 출력하도록 수정 가능 -->
+                    `;
+                        postList.appendChild(projectElement);
                     });
 
                     // Display pagination links
@@ -43,18 +48,18 @@
                         link.href = '#';
                         link.addEventListener('click', function (event) {
                             event.preventDefault();
-                            fetchPosts(i);
+                            fetchProjects(i);
                         });
                         pagination.appendChild(link);
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching posts:', error);
+                    console.error('Error fetching projects:', error);
                 });
         }
 
         // Fetch initial page data and pagination links
-        fetchPosts(1);
+        fetchProjects(1);
     </script>
 </body>
 
